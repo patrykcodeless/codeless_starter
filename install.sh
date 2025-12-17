@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [ -n "${BASH_SOURCE:-}" ]; then
-  REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]-}")" && pwd)"
 else
   REPO_DIR="$(pwd)"
 fi
@@ -132,6 +132,10 @@ configure_env() {
   ONYX_VERSION="$(ask "Wersja obrazu Onyx" "latest")"
   TRAEFIK_VERSION="$(ask "Wersja obrazu Traefik" "2.11")"
 
+  # zabezpieczenie znaków $ w basic auth dla zapisu do .env
+  local SAFE_TRAEFIK_BASIC_AUTH
+  SAFE_TRAEFIK_BASIC_AUTH="${TRAEFIK_BASIC_AUTH//$/\\$}"
+
   cat > "$ENV_FILE" <<EOF
 BASE_DOMAIN=${BASE_DOMAIN}
 COMPOSE_PROFILES=${profiles_csv}
@@ -139,7 +143,7 @@ COMPOSE_PROFILES=${profiles_csv}
 TRAEFIK_IMAGE=traefik:v${TRAEFIK_VERSION}
 TRAEFIK_DOMAIN=${TRAEFIK_DOMAIN}
 TRAEFIK_ACME_EMAIL=${TRAEFIK_ACME_EMAIL}
-TRAEFIK_BASIC_AUTH=${TRAEFIK_BASIC_AUTH}
+TRAEFIK_BASIC_AUTH=${SAFE_TRAEFIK_BASIC_AUTH}
 
 N8N_IMAGE=n8nio/n8n
 N8N_VERSION=${N8N_VERSION}
