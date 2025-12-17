@@ -13,12 +13,24 @@
 - `services/traefik|n8n|onyx|nocodb/` – dane i konfiguracja per usługa (Traefik trzyma ACME w `services/traefik/letsencrypt/acme.json`).
 
 ### Uruchomienie jednowierszowe (prywatne repo)
-```
+
+**Opcja 1: GitHub API** (działa z prywatnymi repo):
+```bash
 GITHUB_TOKEN=... \
 curl -H "Authorization: token $GITHUB_TOKEN" \
-  -fsSL https://raw.githubusercontent.com/<org>/<repo>/main/install.sh | bash
+  -H "Accept: application/vnd.github.v3.raw" \
+  -fsSL https://api.github.com/repos/patrykcodeless/codeless_starter/contents/install.sh | bash
 ```
-- Dla SSH można użyć `GIT_SSH_COMMAND` z kluczem posiadającym dostęp do repo.
+
+**Opcja 2: Git clone** (zalecane dla prywatnych repo):
+```bash
+GITHUB_TOKEN=... \
+git clone https://${GITHUB_TOKEN}@github.com/patrykcodeless/codeless_starter.git
+cd codeless_starter
+bash install.sh
+```
+
+**Uwaga**: `raw.githubusercontent.com` nie działa z tokenem dla prywatnych repo - użyj GitHub API lub git clone.
 
 ### Kluczowe zmienne `.env` (generowane interaktywnie)
 - `COMPOSE_PROFILES` – które usługi włączyć (`traefik,n8n,onyx,nocodb`).

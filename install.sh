@@ -11,35 +11,9 @@ fi
 set -u
 
 ENV_FILE="${REPO_DIR}/.env"
-COMPOSE_FILE="${REPO_DIR}/docker-compose.yml"
 DEFAULT_TRAEFIK_BASIC_AUTH='traefik:\$apr1\$changeme\$2wH8KsEgbduEh1P1LzpT1/'
 
 command_exists() { command -v "$1" >/dev/null 2>&1; }
-
-fetch_compose_file() {
-  if [ -f "$COMPOSE_FILE" ]; then
-    echo "docker-compose.yml już istnieje."
-    return
-  fi
-
-  echo "Pobieram docker-compose.yml z repo..."
-  local url="https://raw.githubusercontent.com/patrykcodeless/codeless_starter/main/docker-compose.yml"
-  
-  if [ -n "${GITHUB_TOKEN:-}" ]; then
-    if curl -fsSL -H "Authorization: token ${GITHUB_TOKEN}" "$url" > "$COMPOSE_FILE" 2>/dev/null; then
-      echo "docker-compose.yml pobrany."
-      return
-    fi
-  fi
-
-  # Fallback bez tokenu (jeśli repo jest publiczne)
-  if curl -fsSL "$url" > "$COMPOSE_FILE" 2>/dev/null; then
-    echo "docker-compose.yml pobrany."
-  else
-    echo "Nie udało się pobrać docker-compose.yml. Sprawdź token lub dostęp do repo." >&2
-    exit 1
-  fi
-}
 
 require_sudo() {
   if [ "${EUID:-$(id -u)}" -ne 0 ]; then
@@ -137,89 +111,275 @@ configure_env() {
   ask_yes_no "Włączyć Onyx?" "y" && enable_onyx=1 || enable_onyx=0
   ask_yes_no "Włączyć NocoDB?" "y" && enable_nocodb=1 || enable_nocodb=0
 
-  local profiles=()
-  [ "$enable_traefik" -eq 1 ] && profiles+=("traefik")
-  [ "$enable_n8n" -eq 1 ] && profiles+=("n8n")
-  [ "$enable_onyx" -eq 1 ] && profiles+=("onyx")
-  [ "$enable_nocodb" -eq 1 ] && profiles+=("nocodb")
-  if [ "${#profiles[@]}" -eq 0 ]; then
+  local enabled_services=()
+  [ "$enable_traefik" -eq 1 ] && enabled_services+=("traefik")
+  [ "$enable_n8n" -eq 1 ] && enabled_services+=("n8n")
+  [ "$enable_onyx" -eq 1 ] && enabled_services+=("onyx")
+  [ "$enable_nocodb" -eq 1 ] && enabled_services+=("nocodb")
+  if [ "${#enabled_services[@]}" -eq 0 ]; then
     echo "Nie wybrano żadnej usługi. Przerywam." >&2
     exit 1
   fi
-  local profiles_csv
-  profiles_csv=$(IFS=,; echo "${profiles[*]}")
 
-  TRAEFIK_ACME_EMAIL="$(ask "E-mail do Let's Encrypt" "admin@${BASE_DOMAIN}")"
-  TRAEFIK_DOMAIN="$(ask "Domena dla panelu Traefik" "traefik.${BASE_DOMAIN}")"
-  TRAEFIK_BASIC_AUTH="$(ask "Basic auth (user:hash) dla panelu Traefik" "${DEFAULT_TRAEFIK_BASIC_AUTH}")"
+  TRAEFIK_ACME_EMAIL=""
+  TRAEFIK_DOMAIN=""
+  TRAEFIK_BASIC_AUTH=""
+  if [ "$enable_traefik" -eq 1 ]; then
+    TRAEFIK_ACME_EMAIL="$(ask "E-mail do Let's Encrypt" "admin@${BASE_DOMAIN}")"
+    TRAEFIK_DOMAIN="$(ask "Domena dla panelu Traefik" "traefik.${BASE_DOMAIN}")"
+    TRAEFIK_BASIC_AUTH="$(ask "Basic auth (user:hash) dla panelu Traefik" "${DEFAULT_TRAEFIK_BASIC_AUTH}")"
+  fi
 
-  N8N_DOMAIN="$(ask "Domena dla n8n" "n8n.${BASE_DOMAIN}")"
-  NOCODB_DOMAIN="$(ask "Domena dla NocoDB" "nocodb.${BASE_DOMAIN}")"
-  ONYX_DOMAIN="$(ask "Domena dla Onyx" "onyx.${BASE_DOMAIN}")"
+  N8N_DOMAIN=""
+  N8N_VERSION=""
+  if [ "$enable_n8n" -eq 1 ]; then
+    N8N_DOMAIN="$(ask "Domena dla n8n" "n8n.${BASE_DOMAIN}")"
+    N8N_VERSION="$(ask "Wersja obrazu n8n" "1.72.0")"
+  fi
 
-  N8N_VERSION="$(ask "Wersja obrazu n8n" "1.72.0")"
-  NOCODB_VERSION="$(ask "Wersja obrazu NocoDB" "0.204.3")"
-  ONYX_VERSION="$(ask "Wersja obrazu Onyx" "latest")"
-  TRAEFIK_VERSION="$(ask "Wersja obrazu Traefik" "2.11")"
+  NOCODB_DOMAIN=""
+  NOCODB_VERSION=""
+  if [ "$enable_nocodb" -eq 1 ]; then
+    NOCODB_DOMAIN="$(ask "Domena dla NocoDB" "nocodb.${BASE_DOMAIN}")"
+    NOCODB_VERSION="$(ask "Wersja obrazu NocoDB" "0.204.3")"
+  fi
+
+  ONYX_DOMAIN=""
+  ONYX_VERSION=""
+  if [ "$enable_onyx" -eq 1 ]; then
+    ONYX_DOMAIN="$(ask "Domena dla Onyx" "onyx.${BASE_DOMAIN}")"
+    ONYX_VERSION="$(ask "Wersja obrazu Onyx" "latest")"
+  fi
+
+  TRAEFIK_VERSION=""
+  if [ "$enable_traefik" -eq 1 ]; then
+    TRAEFIK_VERSION="$(ask "Wersja obrazu Traefik" "2.11")"
+  fi
 
   # zabezpieczenie znaków $ w basic auth dla zapisu do .env
   local SAFE_TRAEFIK_BASIC_AUTH
   SAFE_TRAEFIK_BASIC_AUTH="${TRAEFIK_BASIC_AUTH//$/\\$}"
 
-  cat > "$ENV_FILE" <<'ENVEOF'
-BASE_DOMAIN=
-COMPOSE_PROFILES=
-
-TRAEFIK_IMAGE=
-TRAEFIK_DOMAIN=
-TRAEFIK_ACME_EMAIL=
-TRAEFIK_BASIC_AUTH=
-ENVEOF
-
-  # Wypełniamy wartości z escapowaniem
+  # Zapisz .env
   {
     echo "BASE_DOMAIN=${BASE_DOMAIN}"
-    echo "COMPOSE_PROFILES=${profiles_csv}"
     echo ""
-    echo "TRAEFIK_IMAGE=traefik:v${TRAEFIK_VERSION}"
-    echo "TRAEFIK_DOMAIN=${TRAEFIK_DOMAIN}"
-    echo "TRAEFIK_ACME_EMAIL=${TRAEFIK_ACME_EMAIL}"
-    echo "TRAEFIK_BASIC_AUTH=${SAFE_TRAEFIK_BASIC_AUTH}"
-
-    echo ""
-    echo "N8N_IMAGE=n8nio/n8n"
-    echo "N8N_VERSION=${N8N_VERSION}"
-    echo "N8N_DOMAIN=${N8N_DOMAIN}"
-    echo ""
-    echo "NOCODB_IMAGE=nocodb/nocodb"
-    echo "NOCODB_VERSION=${NOCODB_VERSION}"
-    echo "NOCODB_DOMAIN=${NOCODB_DOMAIN}"
-    echo ""
-    echo "ONYX_IMAGE=ghcr.io/onyx-oss/onyx"
-    echo "ONYX_VERSION=${ONYX_VERSION}"
-    echo "ONYX_DOMAIN=${ONYX_DOMAIN}"
+    if [ "$enable_traefik" -eq 1 ]; then
+      echo "TRAEFIK_IMAGE=traefik:v${TRAEFIK_VERSION}"
+      echo "TRAEFIK_DOMAIN=${TRAEFIK_DOMAIN}"
+      echo "TRAEFIK_ACME_EMAIL=${TRAEFIK_ACME_EMAIL}"
+      echo "TRAEFIK_BASIC_AUTH=${SAFE_TRAEFIK_BASIC_AUTH}"
+      echo ""
+    fi
+    if [ "$enable_n8n" -eq 1 ]; then
+      echo "N8N_IMAGE=n8nio/n8n"
+      echo "N8N_VERSION=${N8N_VERSION}"
+      echo "N8N_DOMAIN=${N8N_DOMAIN}"
+      echo ""
+    fi
+    if [ "$enable_nocodb" -eq 1 ]; then
+      echo "NOCODB_IMAGE=nocodb/nocodb"
+      echo "NOCODB_VERSION=${NOCODB_VERSION}"
+      echo "NOCODB_DOMAIN=${NOCODB_DOMAIN}"
+      echo ""
+    fi
+    if [ "$enable_onyx" -eq 1 ]; then
+      echo "ONYX_IMAGE=ghcr.io/onyx-oss/onyx"
+      echo "ONYX_VERSION=${ONYX_VERSION}"
+      echo "ONYX_DOMAIN=${ONYX_DOMAIN}"
+    fi
   } > "$ENV_FILE"
 
   echo ".env zapisany w ${ENV_FILE}"
+  
+  # Zapisz listę włączonych usług do zmiennej globalnej
+  ENABLED_SERVICES=("${enabled_services[@]}")
+}
+
+create_compose_files() {
+  echo "Tworzę docker-compose.yml dla każdej usługi..."
+  
+  # Wczytaj .env
+  set -a
+  [ -f "$ENV_FILE" ] && source "$ENV_FILE"
+  set +a
+
+  # Utwórz wspólną sieć (jeśli nie istnieje)
+  if ! docker network inspect proxy >/dev/null 2>&1; then
+    require_sudo
+    echo "Tworzę sieć 'proxy'..."
+    ${SUDO} docker network create proxy
+  fi
+
+  # Traefik
+  if [[ " ${ENABLED_SERVICES[@]} " =~ " traefik " ]]; then
+    cat > "${REPO_DIR}/services/traefik/docker-compose.yml" <<EOF
+version: "3.9"
+
+networks:
+  proxy:
+    external: true
+
+services:
+  traefik:
+    image: ${TRAEFIK_IMAGE}
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.le.acme.email=${TRAEFIK_ACME_EMAIL}
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.le.acme.httpchallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "${REPO_DIR}/services/traefik/letsencrypt:/letsencrypt"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(\`${TRAEFIK_DOMAIN}\`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls.certresolver=le"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.middlewares=traefik-auth"
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_BASIC_AUTH}"
+    restart: unless-stopped
+    networks:
+      - proxy
+EOF
+    echo "✓ services/traefik/docker-compose.yml"
+  fi
+
+  # n8n
+  if [[ " ${ENABLED_SERVICES[@]} " =~ " n8n " ]]; then
+    cat > "${REPO_DIR}/services/n8n/docker-compose.yml" <<EOF
+version: "3.9"
+
+networks:
+  proxy:
+    external: true
+
+services:
+  n8n:
+    image: ${N8N_IMAGE}:${N8N_VERSION}
+    environment:
+      - N8N_HOST=${N8N_DOMAIN}
+      - WEBHOOK_URL=https://${N8N_DOMAIN}/
+      - N8N_PROTOCOL=https
+      - N8N_PORT=5678
+    volumes:
+      - "${REPO_DIR}/services/n8n/data:/home/node/.n8n"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.n8n.rule=Host(\`${N8N_DOMAIN}\`)"
+      - "traefik.http.routers.n8n.entrypoints=websecure"
+      - "traefik.http.routers.n8n.tls.certresolver=le"
+      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
+    restart: unless-stopped
+    networks:
+      - proxy
+EOF
+    echo "✓ services/n8n/docker-compose.yml"
+  fi
+
+  # NocoDB
+  if [[ " ${ENABLED_SERVICES[@]} " =~ " nocodb " ]]; then
+    cat > "${REPO_DIR}/services/nocodb/docker-compose.yml" <<EOF
+version: "3.9"
+
+networks:
+  proxy:
+    external: true
+
+services:
+  nocodb:
+    image: ${NOCODB_IMAGE}:${NOCODB_VERSION}
+    environment:
+      - NC_PUBLIC_URL=https://${NOCODB_DOMAIN}
+    volumes:
+      - "${REPO_DIR}/services/nocodb/data:/usr/app/data"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nocodb.rule=Host(\`${NOCODB_DOMAIN}\`)"
+      - "traefik.http.routers.nocodb.entrypoints=websecure"
+      - "traefik.http.routers.nocodb.tls.certresolver=le"
+      - "traefik.http.services.nocodb.loadbalancer.server.port=8080"
+    restart: unless-stopped
+    networks:
+      - proxy
+EOF
+    echo "✓ services/nocodb/docker-compose.yml"
+  fi
+
+  # Onyx
+  if [[ " ${ENABLED_SERVICES[@]} " =~ " onyx " ]]; then
+    cat > "${REPO_DIR}/services/onyx/docker-compose.yml" <<EOF
+version: "3.9"
+
+networks:
+  proxy:
+    external: true
+
+services:
+  onyx:
+    image: ${ONYX_IMAGE}:${ONYX_VERSION}
+    environment:
+      - PORT=3000
+    volumes:
+      - "${REPO_DIR}/services/onyx/data:/data"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.onyx.rule=Host(\`${ONYX_DOMAIN}\`)"
+      - "traefik.http.routers.onyx.entrypoints=websecure"
+      - "traefik.http.routers.onyx.tls.certresolver=le"
+      - "traefik.http.services.onyx.loadbalancer.server.port=3000"
+    restart: unless-stopped
+    networks:
+      - proxy
+EOF
+    echo "✓ services/onyx/docker-compose.yml"
+  fi
 }
 
 bring_up() {
   require_sudo
-  echo "Uruchamiam docker compose (pull + up -d)..."
-  (cd "$REPO_DIR" && ${SUDO} docker compose pull)
-  (cd "$REPO_DIR" && ${SUDO} docker compose up -d)
-  echo "Status kontenerów:"
-  (cd "$REPO_DIR" && ${SUDO} docker compose ps)
+  echo ""
+  echo "Uruchamiam wszystkie usługi..."
+  
+  for service in "${ENABLED_SERVICES[@]}"; do
+    service_dir="${REPO_DIR}/services/${service}"
+    if [ -f "${service_dir}/docker-compose.yml" ]; then
+      echo "Uruchamiam ${service}..."
+      (cd "$service_dir" && ${SUDO} docker compose pull)
+      (cd "$service_dir" && ${SUDO} docker compose up -d)
+    fi
+  done
+
+  echo ""
+  echo "Status wszystkich kontenerów:"
+  ${SUDO} docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 }
 
 main() {
   ensure_dirs
   install_docker
-  fetch_compose_file
   configure_env
+  create_compose_files
   bring_up
-  echo "Gotowe! Sprawdź swoje domeny: n8n=${N8N_DOMAIN}, nocodb=${NOCODB_DOMAIN}, onyx=${ONYX_DOMAIN}, traefik=${TRAEFIK_DOMAIN}"
+  
+  echo ""
+  echo "=== Gotowe! ==="
+  for service in "${ENABLED_SERVICES[@]}"; do
+    case "$service" in
+      traefik) echo "  Traefik: https://${TRAEFIK_DOMAIN}" ;;
+      n8n) echo "  n8n: https://${N8N_DOMAIN}" ;;
+      nocodb) echo "  NocoDB: https://${NOCODB_DOMAIN}" ;;
+      onyx) echo "  Onyx: https://${ONYX_DOMAIN}" ;;
+    esac
+  done
 }
 
 main "$@"
-
