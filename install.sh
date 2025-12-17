@@ -11,9 +11,35 @@ fi
 set -u
 
 ENV_FILE="${REPO_DIR}/.env"
+COMPOSE_FILE="${REPO_DIR}/docker-compose.yml"
 DEFAULT_TRAEFIK_BASIC_AUTH='traefik:\$apr1\$changeme\$2wH8KsEgbduEh1P1LzpT1/'
 
 command_exists() { command -v "$1" >/dev/null 2>&1; }
+
+fetch_compose_file() {
+  if [ -f "$COMPOSE_FILE" ]; then
+    echo "docker-compose.yml już istnieje."
+    return
+  fi
+
+  echo "Pobieram docker-compose.yml z repo..."
+  local url="https://raw.githubusercontent.com/patrykcodeless/codeless_starter/main/docker-compose.yml"
+  
+  if [ -n "${GITHUB_TOKEN:-}" ]; then
+    if curl -fsSL -H "Authorization: token ${GITHUB_TOKEN}" "$url" > "$COMPOSE_FILE" 2>/dev/null; then
+      echo "docker-compose.yml pobrany."
+      return
+    fi
+  fi
+
+  # Fallback bez tokenu (jeśli repo jest publiczne)
+  if curl -fsSL "$url" > "$COMPOSE_FILE" 2>/dev/null; then
+    echo "docker-compose.yml pobrany."
+  else
+    echo "Nie udało się pobrać docker-compose.yml. Sprawdź token lub dostęp do repo." >&2
+    exit 1
+  fi
+}
 
 require_sudo() {
   if [ "${EUID:-$(id -u)}" -ne 0 ]; then
@@ -140,27 +166,39 @@ configure_env() {
   local SAFE_TRAEFIK_BASIC_AUTH
   SAFE_TRAEFIK_BASIC_AUTH="${TRAEFIK_BASIC_AUTH//$/\\$}"
 
-  cat > "$ENV_FILE" <<EOF
-BASE_DOMAIN=${BASE_DOMAIN}
-COMPOSE_PROFILES=${profiles_csv}
+  cat > "$ENV_FILE" <<'ENVEOF'
+BASE_DOMAIN=
+COMPOSE_PROFILES=
 
-TRAEFIK_IMAGE=traefik:v${TRAEFIK_VERSION}
-TRAEFIK_DOMAIN=${TRAEFIK_DOMAIN}
-TRAEFIK_ACME_EMAIL=${TRAEFIK_ACME_EMAIL}
-TRAEFIK_BASIC_AUTH=${SAFE_TRAEFIK_BASIC_AUTH}
+TRAEFIK_IMAGE=
+TRAEFIK_DOMAIN=
+TRAEFIK_ACME_EMAIL=
+TRAEFIK_BASIC_AUTH=
+ENVEOF
 
-N8N_IMAGE=n8nio/n8n
-N8N_VERSION=${N8N_VERSION}
-N8N_DOMAIN=${N8N_DOMAIN}
+  # Wypełniamy wartości z escapowaniem
+  {
+    echo "BASE_DOMAIN=${BASE_DOMAIN}"
+    echo "COMPOSE_PROFILES=${profiles_csv}"
+    echo ""
+    echo "TRAEFIK_IMAGE=traefik:v${TRAEFIK_VERSION}"
+    echo "TRAEFIK_DOMAIN=${TRAEFIK_DOMAIN}"
+    echo "TRAEFIK_ACME_EMAIL=${TRAEFIK_ACME_EMAIL}"
+    echo "TRAEFIK_BASIC_AUTH=${SAFE_TRAEFIK_BASIC_AUTH}"
 
-NOCODB_IMAGE=nocodb/nocodb
-NOCODB_VERSION=${NOCODB_VERSION}
-NOCODB_DOMAIN=${NOCODB_DOMAIN}
-
-ONYX_IMAGE=ghcr.io/onyx-oss/onyx
-ONYX_VERSION=${ONYX_VERSION}
-ONYX_DOMAIN=${ONYX_DOMAIN}
-EOF
+    echo ""
+    echo "N8N_IMAGE=n8nio/n8n"
+    echo "N8N_VERSION=${N8N_VERSION}"
+    echo "N8N_DOMAIN=${N8N_DOMAIN}"
+    echo ""
+    echo "NOCODB_IMAGE=nocodb/nocodb"
+    echo "NOCODB_VERSION=${NOCODB_VERSION}"
+    echo "NOCODB_DOMAIN=${NOCODB_DOMAIN}"
+    echo ""
+    echo "ONYX_IMAGE=ghcr.io/onyx-oss/onyx"
+    echo "ONYX_VERSION=${ONYX_VERSION}"
+    echo "ONYX_DOMAIN=${ONYX_DOMAIN}"
+  } > "$ENV_FILE"
 
   echo ".env zapisany w ${ENV_FILE}"
 }
@@ -177,6 +215,7 @@ bring_up() {
 main() {
   ensure_dirs
   install_docker
+  fetch_compose_file
   configure_env
   bring_up
   echo "Gotowe! Sprawdź swoje domeny: n8n=${N8N_DOMAIN}, nocodb=${NOCODB_DOMAIN}, onyx=${ONYX_DOMAIN}, traefik=${TRAEFIK_DOMAIN}"
