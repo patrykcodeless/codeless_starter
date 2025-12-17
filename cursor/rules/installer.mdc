@@ -1,0 +1,38 @@
+## Instalator usług (n8n, Traefik, Onyx, NocoDB)
+
+### Co robi
+- Sprawdza/instaluje Docker + docker-compose plugin (`install.sh`, sekcja *Przygotowanie hosta*).
+- Zadaje interaktywne pytania (domena bazowa, wybór usług, wersje obrazów, domeny per usługa, basic auth dla Traefik) i generuje `.env`.
+- Tworzy strukturę katalogów per-usługa w `services/*` oraz pliki pomocnicze (`.env`, `docker-compose.yml`).
+- Uruchamia `docker compose pull` i `docker compose up -d`, potem pokazuje `docker compose ps`.
+
+### Struktura
+- `install.sh` – główny skrypt (uruchamiany jednowierszowo lub lokalnie).
+- `docker-compose.yml` – usługi z profilami (`traefik`, `n8n`, `onyx`, `nocodb`) i wspólną siecią `proxy`.
+- `.env.example` – domyślne wartości (można skopiować do `.env`).
+- `services/traefik|n8n|onyx|nocodb/` – dane i konfiguracja per usługa (Traefik trzyma ACME w `services/traefik/letsencrypt/acme.json`).
+
+### Uruchomienie jednowierszowe (prywatne repo)
+```
+GITHUB_TOKEN=... \
+curl -H "Authorization: token $GITHUB_TOKEN" \
+  -fsSL https://raw.githubusercontent.com/<org>/<repo>/main/install.sh | bash
+```
+- Dla SSH można użyć `GIT_SSH_COMMAND` z kluczem posiadającym dostęp do repo.
+
+### Kluczowe zmienne `.env` (generowane interaktywnie)
+- `COMPOSE_PROFILES` – które usługi włączyć (`traefik,n8n,onyx,nocodb`).
+- `BASE_DOMAIN` oraz domeny per usługa: `TRAEFIK_DOMAIN`, `N8N_DOMAIN`, `NOCODB_DOMAIN`, `ONYX_DOMAIN`.
+- Obrazy/wersje: `TRAEFIK_IMAGE`, `N8N_IMAGE`/`N8N_VERSION`, `NOCODB_IMAGE`/`NOCODB_VERSION`, `ONYX_IMAGE`/`ONYX_VERSION`.
+- TLS/LE: `TRAEFIK_ACME_EMAIL`, `TRAEFIK_BASIC_AUTH` (format `user:hash` z `htpasswd -nb user pass`).
+
+### Wsparcie usług
+- Traefik: HTTPS (Let's Encrypt HTTP-01), dashboard z basic auth, przekierowanie na porty 80/443.
+- n8n: host z `N8N_HOST`, webhook URL ustawiany na HTTPS.
+- NocoDB: `NC_PUBLIC_URL` dla poprawnych linków.
+- Onyx: domyślny port 3000, wystawiany przez Traefik.
+
+### Weryfikacja
+- Po instalacji: `docker compose ps` w katalogu repo.
+- Sprawdź domeny: `https://traefik.<domena>`, `https://n8n.<domena>`, `https://nocodb.<domena>`, `https://onyx.<domena>`.
+- Certyfikaty LE są w `services/traefik/letsencrypt/acme.json`.
