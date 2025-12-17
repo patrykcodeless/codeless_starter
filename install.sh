@@ -199,10 +199,12 @@ configure_env() {
 create_compose_files() {
   echo "Tworzę docker-compose.yml dla każdej usługi..."
   
-  # Wczytaj .env
+  # Wczytaj .env (wyłączamy nounset na czas wczytywania, żeby nie było problemu z $ w wartościach)
+  set +u
   set -a
   [ -f "$ENV_FILE" ] && source "$ENV_FILE"
   set +a
+  set -u
 
   # Utwórz wspólną sieć (jeśli nie istnieje)
   if ! docker network inspect proxy >/dev/null 2>&1; then
