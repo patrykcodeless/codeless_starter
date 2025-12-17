@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -n "${BASH_SOURCE:-}" ]; then
+  REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+else
+  REPO_DIR="$(pwd)"
+fi
 ENV_FILE="${REPO_DIR}/.env"
+DEFAULT_TRAEFIK_BASIC_AUTH='traefik:$apr1$changeme$2wH8KsEgbduEh1P1LzpT1/'
 
 command_exists() { command -v "$1" >/dev/null 2>&1; }
 
@@ -116,7 +121,7 @@ configure_env() {
 
   TRAEFIK_ACME_EMAIL="$(ask "E-mail do Let's Encrypt" "admin@${BASE_DOMAIN}")"
   TRAEFIK_DOMAIN="$(ask "Domena dla panelu Traefik" "traefik.${BASE_DOMAIN}")"
-  TRAEFIK_BASIC_AUTH="$(ask "Basic auth (user:hash) dla panelu Traefik" "traefik:\\$apr1\\$changeme\\$2wH8KsEgbduEh1P1LzpT1/")"
+  TRAEFIK_BASIC_AUTH="$(ask "Basic auth (user:hash) dla panelu Traefik" "${DEFAULT_TRAEFIK_BASIC_AUTH}")"
 
   N8N_DOMAIN="$(ask "Domena dla n8n" "n8n.${BASE_DOMAIN}")"
   NOCODB_DOMAIN="$(ask "Domena dla NocoDB" "nocodb.${BASE_DOMAIN}")"
