@@ -78,13 +78,53 @@ ask() {
   fi
 }
 
-configure_env() {
-  echo "Konfiguracja n8n"
+ask_yes_no() {
+  local prompt="$1"
+  local default="${2:-y}"
+  local value
+  read -r -p "$prompt [${default}/n]: " value || true
+  value="${value:-$default}"
+  case "$value" in
+    y|Y|yes|YES) return 0 ;;
+    *) return 1 ;;
+  esac
+}
 
-  BASE_DOMAIN="$(ask "Podaj domenę bazową (np. example.com)" "example.com")"
-  N8N_DOMAIN="$(ask "Domena dla n8n" "n8n.${BASE_DOMAIN}")"
-  N8N_VERSION="$(ask "Wersja obrazu n8n" "1.72.0")"
-  N8N_PORT="$(ask "Port dla n8n (5678)" "5678")"
+configure_env() {
+  echo ""
+  echo "=== Konfiguracja n8n ==="
+  echo ""
+
+  # Domena
+  echo "Konfiguracja domeny:"
+  if ask_yes_no "Czy masz domenę dla n8n?" "n"; then
+    N8N_DOMAIN="$(ask "Podaj pełną domenę dla n8n (np. n8n.example.com)" "")"
+    while [ -z "$N8N_DOMAIN" ]; do
+      echo "Domena nie może być pusta!"
+      N8N_DOMAIN="$(ask "Podaj pełną domenę dla n8n" "")"
+    done
+    BASE_DOMAIN="${N8N_DOMAIN#*.}"  # wyciągnij domenę bazową
+  else
+    BASE_DOMAIN="localhost"
+    N8N_DOMAIN="localhost"
+    echo "Używam localhost jako domeny."
+  fi
+
+  echo ""
+
+  # Wersja
+  echo "Konfiguracja wersji:"
+  if ask_yes_no "Czy chcesz użyć najnowszej wersji n8n?" "y"; then
+    N8N_VERSION="latest"
+    echo "Używam najnowszej wersji (latest)."
+  else
+    N8N_VERSION="$(ask "Podaj konkretną wersję n8n (np. 1.72.0)" "1.72.0")"
+  fi
+
+  echo ""
+
+  # Port
+  N8N_PORT="$(ask "Na jakim porcie ma działać n8n?" "5678")"
 
   # Zapisz .env
   {
