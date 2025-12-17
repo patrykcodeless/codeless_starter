@@ -67,27 +67,30 @@ install_docker() {
 
 ask() {
   local prompt="$1"
-  local default="${2:-}"
-  local value
-  if [ -n "$default" ]; then
-    read -r -p "$prompt [$default]: " value || true
-    echo "${value:-$default}"
-  else
-    read -r -p "$prompt: " value || true
-    echo "${value}"
-  fi
+  local value=""
+  while [ -z "$value" ]; do
+    read -r -p "$prompt: " value </dev/tty
+    if [ -z "$value" ]; then
+      echo "Wartość nie może być pusta! Spróbuj ponownie."
+    fi
+  done
+  echo "$value"
 }
 
 ask_yes_no() {
   local prompt="$1"
-  local default="${2:-y}"
-  local value
-  read -r -p "$prompt [${default}/n]: " value || true
-  value="${value:-$default}"
-  case "$value" in
-    y|Y|yes|YES) return 0 ;;
-    *) return 1 ;;
-  esac
+  local value=""
+  while [ -z "$value" ]; do
+    read -r -p "$prompt [y/n]: " value </dev/tty
+    case "$value" in
+      y|Y|yes|YES) return 0 ;;
+      n|N|no|NO) return 1 ;;
+      *) 
+        echo "Proszę odpowiedzieć 'y' (tak) lub 'n' (nie)"
+        value=""
+        ;;
+    esac
+  done
 }
 
 configure_env() {
@@ -97,12 +100,8 @@ configure_env() {
 
   # Domena
   echo "Konfiguracja domeny:"
-  if ask_yes_no "Czy masz domenę dla n8n?" "n"; then
-    N8N_DOMAIN="$(ask "Podaj pełną domenę dla n8n (np. n8n.example.com)" "")"
-    while [ -z "$N8N_DOMAIN" ]; do
-      echo "Domena nie może być pusta!"
-      N8N_DOMAIN="$(ask "Podaj pełną domenę dla n8n" "")"
-    done
+  if ask_yes_no "Czy masz domenę dla n8n?"; then
+    N8N_DOMAIN="$(ask "Podaj pełną domenę dla n8n (np. n8n.example.com)")"
     BASE_DOMAIN="${N8N_DOMAIN#*.}"  # wyciągnij domenę bazową
   else
     BASE_DOMAIN="localhost"
@@ -114,17 +113,20 @@ configure_env() {
 
   # Wersja
   echo "Konfiguracja wersji:"
-  if ask_yes_no "Czy chcesz użyć najnowszej wersji n8n?" "y"; then
+  if ask_yes_no "Czy chcesz użyć najnowszej wersji n8n?"; then
     N8N_VERSION="latest"
     echo "Używam najnowszej wersji (latest)."
   else
-    N8N_VERSION="$(ask "Podaj konkretną wersję n8n (np. 1.72.0)" "1.72.0")"
+    N8N_VERSION="$(ask "Podaj konkretną wersję n8n (np. 1.72.0)")"
   fi
 
   echo ""
 
   # Port
-  N8N_PORT="$(ask "Na jakim porcie ma działać n8n?" "5678")"
+  N8N_PORT="$(ask "Na jakim porcie ma działać n8n? (domyślnie 5678)")"
+  if [ -z "$N8N_PORT" ]; then
+    N8N_PORT="5678"
+  fi
 
   # Zapisz .env
   {
