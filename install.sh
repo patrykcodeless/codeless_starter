@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# BASH_SOURCE może być puste przy uruchomieniu via curl|bash; wyłączamy nounset na chwilę
+set +u
 if [ -n "${BASH_SOURCE:-}" ]; then
-  REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]-}")" && pwd)"
+  REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 else
   REPO_DIR="$(pwd)"
 fi
+set -u
+
 ENV_FILE="${REPO_DIR}/.env"
-DEFAULT_TRAEFIK_BASIC_AUTH='traefik:$apr1$changeme$2wH8KsEgbduEh1P1LzpT1/'
+DEFAULT_TRAEFIK_BASIC_AUTH='traefik:\$apr1\$changeme\$2wH8KsEgbduEh1P1LzpT1/'
 
 command_exists() { command -v "$1" >/dev/null 2>&1; }
 
