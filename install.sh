@@ -68,29 +68,54 @@ install_docker() {
 ask() {
   local prompt="$1"
   local value=""
-  while [ -z "$value" ]; do
-    read -r -p "$prompt: " value </dev/tty
-    if [ -z "$value" ]; then
-      echo "Wartość nie może być pusta! Spróbuj ponownie."
-    fi
-  done
+  # Sprawdź czy stdin jest terminalem, jeśli nie - użyj /dev/tty
+  if [ -t 0 ]; then
+    while [ -z "$value" ]; do
+      read -r -p "$prompt: " value
+      if [ -z "$value" ]; then
+        echo "Wartość nie może być pusta! Spróbuj ponownie."
+      fi
+    done
+  else
+    while [ -z "$value" ]; do
+      read -r -p "$prompt: " value </dev/tty
+      if [ -z "$value" ]; then
+        echo "Wartość nie może być pusta! Spróbuj ponownie."
+      fi
+    done
+  fi
   echo "$value"
 }
 
 ask_yes_no() {
   local prompt="$1"
   local value=""
-  while [ -z "$value" ]; do
-    read -r -p "$prompt [y/n]: " value </dev/tty
-    case "$value" in
-      y|Y|yes|YES) return 0 ;;
-      n|N|no|NO) return 1 ;;
-      *) 
-        echo "Proszę odpowiedzieć 'y' (tak) lub 'n' (nie)"
-        value=""
-        ;;
-    esac
-  done
+  # Sprawdź czy stdin jest terminalem, jeśli nie - użyj /dev/tty
+  if [ -t 0 ]; then
+    while [ -z "$value" ]; do
+      read -r -p "$prompt [y/n]: " value
+      case "$value" in
+        y|Y|yes|YES) return 0 ;;
+        n|N|no|NO) return 1 ;;
+        *) 
+          echo "Proszę odpowiedzieć 'y' (tak) lub 'n' (nie)"
+          value=""
+          ;;
+      esac
+    done
+  else
+    while [ -z "$value" ]; do
+      read -r -p "$prompt [y/n]: " value </dev/tty
+      case "$value" in
+        y|Y|yes|YES) return 0 ;;
+        n|N|no|NO) return 1 ;;
+        *) 
+          echo "Proszę odpowiedzieć 'y' (tak) lub 'n' (nie)"
+          value=""
+          ;;
+      esac
+    done
+  fi
 }
 
 configure_env() {
@@ -123,10 +148,7 @@ configure_env() {
   echo ""
 
   # Port
-  N8N_PORT="$(ask "Na jakim porcie ma działać n8n? (domyślnie 5678)")"
-  if [ -z "$N8N_PORT" ]; then
-    N8N_PORT="5678"
-  fi
+  N8N_PORT="$(ask "Na jakim porcie ma działać n8n?")"
 
   # Zapisz .env
   {
@@ -153,8 +175,6 @@ create_compose_file() {
   fi
 
   cat > "${REPO_DIR}/services/n8n/docker-compose.yml" <<EOF
-version: "3.9"
-
 services:
   n8n:
     image: ${N8N_IMAGE}:${N8N_VERSION}
