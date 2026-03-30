@@ -1,24 +1,48 @@
----
-alwaysApply: true
----
-
-## Instalator usług (n8n, Traefik, Onyx, NocoDB)
+## Instalator usług (n8n, NocoDB, Onyx, Traefik)
 
 ### Co robi
-- Sprawdza/instaluje Docker + docker-compose plugin (`install.sh`, sekcja *Przygotowanie hosta*).
-- Zadaje interaktywne pytania (domena bazowa, wybór usług, wersje obrazów, domeny per usługa, basic auth dla Traefik) i generuje `.env`.
-- Tworzy strukturę katalogów per-usługa w `services/*` oraz pliki pomocnicze (`.env`, `docker-compose.yml`).
-- Uruchamia `docker compose pull` i `docker compose up -d`, potem pokazuje `docker compose ps`.
+
+- Wykrywa system operacyjny (Linux / macOS) i instaluje Docker jeśli brak.
+- Interaktywny wybór usług: n8n, NocoDB, Onyx.app.
+- Pyta o domenę bazową i automatycznie generuje subdomeny: `n8n.domena`, `nocodb.domena`, `onyx.domena`, `traefik.domena`.
+- Jeśli domena podana: automatycznie konfiguruje Traefik jako reverse proxy z Let's Encrypt SSL.
+- Jeśli brak domeny: tryb lokalny, usługi na portach HTTP.
+- Konfiguracja n8n: opcjonalny SMTP, log retention 30 dni.
+- Tworzy strukturę katalogów per-usługa w `services/*` oraz pliki `.env` i `docker-compose.yml`.
+- Uruchamia `docker compose pull` i `docker compose up -d` dla każdej usługi.
+- Obsługa błędów i automatyczny rollback przy niepowodzeniu.
+- Pełny log instalacji zapisywany do `install.log`.
+
+### Obsługiwane usługi
+
+| Usługa  | Obraz                                    | Subdomena (tryb domenowy)         |
+|---------|------------------------------------------|-----------------------------------|
+| n8n     | `n8nio/n8n`                              | `n8n.DOMENA`                      |
+| NocoDB  | `nocodb/nocodb`                          | `nocodb.DOMENA`                   |
+| Onyx    | `ghcr.io/onyx-dot-app/onyx-backend/web` | `onyx.DOMENA`                     |
+| Traefik | `traefik:v3.3`                           | `traefik.DOMENA` (auto, jeśli DN) |
 
 ### Struktura
-- `install.sh` – główny skrypt (uruchamiany jednowierszowo lub lokalnie).
-- `docker-compose.yml` – usługi z profilami (`traefik`, `n8n`, `onyx`, `nocodb`) i wspólną siecią `proxy`.
-- `.env.example` – domyślne wartości (można skopiować do `.env`).
-- `services/traefik|n8n|onyx|nocodb/` – dane i konfiguracja per usługa (Traefik trzyma ACME w `services/traefik/letsencrypt/acme.json`).
 
-### Uruchomienie jednowierszowe (prywatne repo)
+```
+install.sh                              # Główny skrypt instalacyjny
+install.log                             # Log ostatniej instalacji
+.env                                    # Wygenerowane zmienne środowiskowe
+services/
+  traefik/docker-compose.yml            # Traefik + Let's Encrypt
+  traefik/letsencrypt/acme.json         # Certyfikaty LE (chmod 600)
+  n8n/docker-compose.yml                # n8n z opcjonalnym Traefik
+  nocodb/docker-compose.yml             # NocoDB z opcjonalnym Traefik
+  onyx/docker-compose.yml               # Onyx (web + api + postgres + vespa + redis)
+```
 
-**Opcja 1: GitHub API** (działa z prywatnymi repo):
+### Uruchomienie jednowierszowe (repo publiczne)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/patrykcodeless/codeless_starter/main/install.sh | bash
+```
+
+**Opcja dla prywatnego repo (GitHub API):**
 ```bash
 GITHUB_TOKEN=... \
 curl -H "Authorization: token $GITHUB_TOKEN" \
@@ -26,29 +50,160 @@ curl -H "Authorization: token $GITHUB_TOKEN" \
   -fsSL https://api.github.com/repos/patrykcodeless/codeless_starter/contents/install.sh | bash
 ```
 
-**Opcja 2: Git clone** (zalecane dla prywatnych repo):
-```bash
-GITHUB_TOKEN=... \
-git clone https://${GITHUB_TOKEN}@github.com/patrykcodeless/codeless_starter.git
-cd codeless_starter
-bash install.sh
+### Proces instalacji (interaktywny)
+
+**Krok 1 — Instalacja Docker**
+- Linux: apt-get (Debian/Ubuntu) / dnf (Fedora/RHEL) / yum (CentOS)
+- macOS: Homebrew → `brew install --cask docker`, czeka na uruchomienie Docker Desktop
+- Pomija jeśli Docker już dostępny
+
+**Krok 2 — Pytania interaktywne (w tej kolejności)**
+
+1. Czy masz domenę klienta? [y/n]
+   - Y → podaj domenę bazową (np. `example.com`), Traefik konfigurowany automatycznie
+   - N → tryb lokalny (localhost), bez DNS, bez SSL
+
+2. Czy zainstalować n8n? [y/n]
+
+3. Czy zainstalować NocoDB? [y/n]
+
+4. Czy zainstalować Onyx.app? [y/n]
+
+**Krok 3 — Wersje (dla każdej wybranej usługi)**
+
+- Najnowsza wersja? [y/n]
+- Jeśli N → podaj konkretną wersję (np. `1.72.0`)
+
+**Krok 4 — Konfiguracja dodatkowa**
+
+- n8n (jeśli wybrane):
+  - Port (tylko tryb lokalny, domyślnie 5678)
+  - Opcjonalne SMTP: host, port, user, pass, sender, TLS
+- Traefik (jeśli domena podana):
+  - E-mail do Let's Encrypt
+  - Użytkownik + hasło do dashboardu (hash generowany przez htpasswd lub openssl)
+
+**Krok 5 — Generowanie struktury i konfiguracji**
+
+- Tworzenie katalogów `services/*/data/` (tylko brakujących)
+- Generowanie `docker-compose.yml` per usługa
+- Generowanie `.env`
+
+**Krok 6 — Uruchomienie**
+
+- Traefik uruchamiany pierwszy (tworzy sieć `proxy`)
+- Pozostałe usługi uruchamiane kolejno
+- `docker compose pull && docker compose up -d`
+
+### Konfiguracja n8n — log retention 30 dni
+
+```yaml
+environment:
+  - EXECUTIONS_DATA_PRUNE=true
+  - EXECUTIONS_DATA_MAX_AGE=30      # 30 dni (domyślnie 7)
+  - EXECUTIONS_DATA_SAVE_ON_ERROR=all
+  - EXECUTIONS_DATA_SAVE_ON_SUCCESS=none
+  - EXECUTIONS_DATA_SAVE_ON_PROGRESS=false
 ```
 
-**Uwaga**: `raw.githubusercontent.com` nie działa z tokenem dla prywatnych repo - użyj GitHub API lub git clone.
-
 ### Kluczowe zmienne `.env` (generowane interaktywnie)
-- `COMPOSE_PROFILES` – które usługi włączyć (`traefik,n8n,onyx,nocodb`).
-- `BASE_DOMAIN` oraz domeny per usługa: `TRAEFIK_DOMAIN`, `N8N_DOMAIN`, `NOCODB_DOMAIN`, `ONYX_DOMAIN`.
-- Obrazy/wersje: `TRAEFIK_IMAGE`, `N8N_IMAGE`/`N8N_VERSION`, `NOCODB_IMAGE`/`NOCODB_VERSION`, `ONYX_IMAGE`/`ONYX_VERSION`.
-- TLS/LE: `TRAEFIK_ACME_EMAIL`, `TRAEFIK_BASIC_AUTH` (format `user:hash` z `htpasswd -nb user pass`).
 
-### Wsparcie usług
-- Traefik: HTTPS (Let's Encrypt HTTP-01), dashboard z basic auth, przekierowanie na porty 80/443.
-- n8n: host z `N8N_HOST`, webhook URL ustawiany na HTTPS.
-- NocoDB: `NC_PUBLIC_URL` dla poprawnych linków.
-- Onyx: domyślny port 3000, wystawiany przez Traefik.
+**Wspólne:**
+- `BASE_DOMAIN` — domena bazowa (lub `localhost`)
 
-### Weryfikacja
-- Po instalacji: `docker compose ps` w katalogu repo.
-- Sprawdź domeny: `https://traefik.<domena>`, `https://n8n.<domena>`, `https://nocodb.<domena>`, `https://onyx.<domena>`.
-- Certyfikaty LE są w `services/traefik/letsencrypt/acme.json`.
+**n8n:**
+- `N8N_IMAGE=n8nio/n8n`
+- `N8N_VERSION` — wersja obrazu
+- `N8N_DOMAIN` — subdomena (auto: `n8n.${BASE_DOMAIN}`)
+- `N8N_PORT` — port (tylko tryb lokalny)
+- `N8N_WEBHOOK_URL` — auto (https jeśli Traefik, http jeśli localhost)
+- `N8N_PROTOCOL` — http lub https
+- `N8N_SMTP_*` — opcjonalne SMTP (host, port, user, pass, sender, secure)
+
+**NocoDB:**
+- `NOCODB_IMAGE=nocodb/nocodb`
+- `NOCODB_VERSION`
+- `NOCODB_DOMAIN` — subdomena (auto: `nocodb.${BASE_DOMAIN}`)
+
+**Onyx:**
+- `ONYX_VERSION`
+- `ONYX_DOMAIN` — subdomena (auto: `onyx.${BASE_DOMAIN}`)
+
+**Traefik:**
+- `TRAEFIK_IMAGE=traefik:v3.3`
+- `TRAEFIK_DOMAIN` — subdomena (auto: `traefik.${BASE_DOMAIN}`)
+- `TRAEFIK_ACME_EMAIL`
+- `TRAEFIK_BASIC_AUTH` — hash htpasswd/openssl
+
+### Architektura sieciowa Docker
+
+- Sieć `proxy` (external bridge) — tworzona przez Traefik, dołączają n8n/NocoDB/Onyx
+- Sieć `onyx_internal` (internal bridge) — izolowana sieć wewnętrzna Onyx
+- Tryb lokalny: porty bezpośrednie, bez shared network
+
+### Struktura katalogów po instalacji
+
+```
+services/
+  traefik/
+    docker-compose.yml
+    letsencrypt/
+      acme.json         # chmod 600
+    data/
+  n8n/
+    docker-compose.yml
+    data/               # workflows, credentials, .n8n/
+  nocodb/
+    docker-compose.yml
+    data/               # nc.db (SQLite default)
+  onyx/
+    docker-compose.yml
+    data/
+    postgres_data/      # PostgreSQL
+    vespa_data/         # Vespa vector index
+.env
+install.log
+```
+
+### Rollback i obsługa błędów
+
+- `trap rollback ERR` — automatyczny rollback przy błędzie
+- Rollback: zatrzymuje kontenery, usuwa sieci, usuwa wygenerowane pliki/katalogi
+- Szczegóły błędu w `install.log`
+
+### Weryfikacja po instalacji
+
+```bash
+# Status kontenerów
+docker ps
+
+# Logi usługi
+cd services/n8n && docker compose logs -f
+
+# Restart
+cd services/n8n && docker compose restart
+
+# Aktualizacja
+cd services/n8n && docker compose pull && docker compose up -d
+```
+
+**Dostęp do usług (tryb domenowy):**
+- `https://n8n.${BASE_DOMAIN}`
+- `https://nocodb.${BASE_DOMAIN}`
+- `https://onyx.${BASE_DOMAIN}`
+- `https://traefik.${BASE_DOMAIN}` (Basic Auth)
+
+**Dostęp do usług (tryb lokalny):**
+- `http://localhost:5678` (n8n)
+- `http://localhost:8080` (NocoDB)
+- `http://localhost:3000` (Onyx)
+
+### Uwagi techniczne
+
+- Skrypt używa `/dev/tty` do czytania odpowiedzi gdy stdin jest przekierowany (np. `curl | bash`).
+- `set -euo pipefail` — przerywa przy błędzie, niezadeklarowanej zmiennej, błędzie pipeline.
+- Traefik musi startować przed pozostałymi usługami (tworzy sieć `proxy`).
+- HTTP → HTTPS redirect włączony automatycznie w Traefiku.
+- HSTS headers dla n8n (forceSTSHeader, STSSeconds=31536000).
+- Onyx generuje losowe `SECRET_KEY` i hasło PostgreSQL podczas instalacji.
+- macOS: wymaga Homebrew; czeka max 60s na uruchomienie Docker Desktop.
