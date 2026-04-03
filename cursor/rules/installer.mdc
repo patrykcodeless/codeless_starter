@@ -20,7 +20,7 @@
 | n8n     | `n8nio/n8n`                              | `n8n.DOMENA`                      |
 | NocoDB  | `nocodb/nocodb`                          | `nocodb.DOMENA`                   |
 | Onyx    | `ghcr.io/onyx-dot-app/onyx-backend/web` | `onyx.DOMENA`                     |
-| Traefik | `traefik:v3.3`                           | `traefik.DOMENA` (auto, jeśli DN) |
+| Traefik | `traefik:v2.11`                           | `traefik.DOMENA` (auto, jeśli DN) |
 
 ### Struktura
 
@@ -130,7 +130,7 @@ environment:
 - `ONYX_DOMAIN` — subdomena (auto: `onyx.${BASE_DOMAIN}`)
 
 **Traefik:**
-- `TRAEFIK_IMAGE=traefik:v3.3`
+- `TRAEFIK_IMAGE=traefik:v2.11`
 - `TRAEFIK_DOMAIN` — subdomena (auto: `traefik.${BASE_DOMAIN}`)
 - `TRAEFIK_ACME_EMAIL`
 - `TRAEFIK_BASIC_AUTH` — hash htpasswd/openssl

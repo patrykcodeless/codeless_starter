@@ -33,7 +33,7 @@ USE_TRAEFIK=0
 N8N_VERSION="latest"
 NOCODB_VERSION="latest"
 ONYX_VERSION="latest"
-TRAEFIK_VERSION="v3.3"
+TRAEFIK_VERSION="v2.11"
 
 # Domain variables
 N8N_DOMAIN="localhost"
@@ -572,7 +572,6 @@ YAML
       - "traefik.http.routers.n8n.tls.certresolver=le"
       - "traefik.http.routers.n8n.middlewares=n8n-headers"
       - "traefik.http.services.n8n.loadbalancer.server.port=5678"
-      - "traefik.http.middlewares.n8n-headers.headers.SSLRedirect=true"
       - "traefik.http.middlewares.n8n-headers.headers.forceSTSHeader=true"
       - "traefik.http.middlewares.n8n-headers.headers.STSSeconds=31536000"
     networks:
@@ -870,33 +869,18 @@ create_compose_traefik() {
 networks:
   proxy:
     external: true
-  socket:
-    internal: true
 
 services:
-  socket-proxy:
-    image: tecnativa/docker-socket-proxy
-    container_name: socket-proxy
-    environment:
-      - CONTAINERS=1
-      - EVENTS=1
-      - PING=1
-      - VERSION=1
-      - NETWORKS=1
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    restart: unless-stopped
-    networks:
-      - socket
-
   traefik:
     image: traefik:${TRAEFIK_VERSION}
     container_name: traefik
+    environment:
+      - DOCKER_API_VERSION=1.54
     command:
       - --api.dashboard=${dashboard_flag}
       - --api.insecure=false
       - --providers.docker=true
-      - --providers.docker.endpoint=tcp://socket-proxy:2375
+      - --providers.docker.endpoint=unix:///var/run/docker.sock
       - --providers.docker.exposedbydefault=false
       - --providers.docker.network=proxy
       - --entrypoints.web.address=:80
@@ -914,12 +898,10 @@ services:
       - "443:443"
     volumes:
       - ${REPO_DIR}/services/traefik/letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: unless-stopped
-    depends_on:
-      - socket-proxy
     networks:
       - proxy
-      - socket
 YAML
 
   if [ "$TRAEFIK_DASHBOARD" -eq 1 ]; then

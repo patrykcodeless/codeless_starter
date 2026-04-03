@@ -52,7 +52,7 @@ Internet
 
 | Komponent   | Obraz                      | Opis                                  |
 |-------------|----------------------------|---------------------------------------|
-| Traefik     | `traefik:v3.3`             | Reverse proxy, SSL/TLS, routing       |
+| Traefik     | `traefik:v2.11`            | Reverse proxy, SSL/TLS, routing       |
 | PostgreSQL  | `postgres:15.2-alpine`     | Baza relacyjna dla Onyx               |
 | Redis       | `redis:7.4-alpine`         | Cache/kolejka dla Onyx                |
 | Vespa       | `vespaengine/vespa:8.526`  | Wyszukiwarka wektorowa dla Onyx       |
@@ -167,7 +167,7 @@ NOCODB_DOMAIN=nocodb.example.com
 ONYX_VERSION=latest
 ONYX_DOMAIN=onyx.example.com
 
-TRAEFIK_IMAGE=traefik:v3.3
+TRAEFIK_IMAGE=traefik:v2.11
 TRAEFIK_DOMAIN=traefik.example.com
 TRAEFIK_ACME_EMAIL=admin@example.com
 TRAEFIK_BASIC_AUTH=admin:$apr1$hash...
