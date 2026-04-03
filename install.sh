@@ -870,8 +870,25 @@ create_compose_traefik() {
 networks:
   proxy:
     external: true
+  socket:
+    internal: true
 
 services:
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy
+    container_name: socket-proxy
+    environment:
+      - CONTAINERS=1
+      - EVENTS=1
+      - PING=1
+      - VERSION=1
+      - NETWORKS=1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    networks:
+      - socket
+
   traefik:
     image: traefik:${TRAEFIK_VERSION}
     container_name: traefik
@@ -879,6 +896,7 @@ services:
       - --api.dashboard=${dashboard_flag}
       - --api.insecure=false
       - --providers.docker=true
+      - --providers.docker.endpoint=tcp://socket-proxy:2375
       - --providers.docker.exposedbydefault=false
       - --providers.docker.network=proxy
       - --entrypoints.web.address=:80
@@ -894,14 +912,14 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    environment:
-      - DOCKER_API_VERSION=1.41
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${REPO_DIR}/services/traefik/letsencrypt:/letsencrypt
     restart: unless-stopped
+    depends_on:
+      - socket-proxy
     networks:
       - proxy
+      - socket
 YAML
 
   if [ "$TRAEFIK_DASHBOARD" -eq 1 ]; then
