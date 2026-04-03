@@ -63,6 +63,7 @@ TRAEFIK_ACME_EMAIL=""
 TRAEFIK_AUTH_USER=""
 TRAEFIK_AUTH_PASS=""
 TRAEFIK_BASIC_AUTH=""
+TRAEFIK_DASHBOARD=0
 
 # ─── Logging ──────────────────────────────────────────────────────────────────
 log() {
@@ -270,7 +271,8 @@ configure_domain() {
     BASE_DOMAIN="$(ask "Podaj pełny adres domeny głównej (np. example.com)")"
     USE_TRAEFIK=1
     log "Domena: ${BASE_DOMAIN}"
-    log "Traefik zostanie automatycznie skonfigurowany jako reverse proxy z SSL."
+
+    log "Traefik zostanie skonfigurowany jako reverse proxy z SSL (Let's Encrypt)."
   else
     BASE_DOMAIN="localhost"
     USE_TRAEFIK=0
@@ -344,7 +346,7 @@ configure_subdomains() {
     [ "$INSTALL_N8N" -eq 1 ]    && log "  n8n:    https://${N8N_DOMAIN}"
     [ "$INSTALL_NOCODB" -eq 1 ] && log "  NocoDB: https://${NOCODB_DOMAIN}"
     [ "$INSTALL_ONYX" -eq 1 ]   && log "  Onyx:   https://${ONYX_DOMAIN}"
-    log "  Traefik: https://${TRAEFIK_DOMAIN}"
+    [ "$TRAEFIK_DASHBOARD" -eq 1 ] && log "  Traefik: https://${TRAEFIK_DOMAIN}"
   else
     N8N_DOMAIN="localhost"
     NOCODB_DOMAIN="localhost"
@@ -389,18 +391,25 @@ configure_traefik_auth() {
   log "=== Konfiguracja Traefik ==="
 
   TRAEFIK_ACME_EMAIL="$(ask "E-mail do Let's Encrypt (rejestracja certyfikatów)")"
-  TRAEFIK_AUTH_USER="$(ask "Użytkownik do dashboardu Traefik")"
-  TRAEFIK_AUTH_PASS="$(ask "Hasło do dashboardu Traefik")"
 
-  if command_exists htpasswd; then
-    TRAEFIK_BASIC_AUTH="$(htpasswd -nb "${TRAEFIK_AUTH_USER}" "${TRAEFIK_AUTH_PASS}")"
-  elif command_exists openssl; then
-    local hash
-    hash="$(openssl passwd -apr1 "${TRAEFIK_AUTH_PASS}")"
-    TRAEFIK_BASIC_AUTH="${TRAEFIK_AUTH_USER}:${hash}"
+  if ask_yes_no "Czy chcesz włączyć dashboard Traefika?"; then
+    TRAEFIK_DASHBOARD=1
+    TRAEFIK_AUTH_USER="$(ask "Użytkownik do dashboardu Traefik")"
+    TRAEFIK_AUTH_PASS="$(ask "Hasło do dashboardu Traefik")"
+
+    if command_exists htpasswd; then
+      TRAEFIK_BASIC_AUTH="$(htpasswd -nb "${TRAEFIK_AUTH_USER}" "${TRAEFIK_AUTH_PASS}")"
+    elif command_exists openssl; then
+      local hash
+      hash="$(openssl passwd -apr1 "${TRAEFIK_AUTH_PASS}")"
+      TRAEFIK_BASIC_AUTH="${TRAEFIK_AUTH_USER}:${hash}"
+    else
+      log "Uwaga: htpasswd i openssl niedostępne — używam prostego formatu (niezalecane produkcyjnie)."
+      TRAEFIK_BASIC_AUTH="${TRAEFIK_AUTH_USER}:${TRAEFIK_AUTH_PASS}"
+    fi
   else
-    log "Uwaga: htpasswd i openssl niedostępne — używam prostego formatu (niezalecane produkcyjnie)."
-    TRAEFIK_BASIC_AUTH="${TRAEFIK_AUTH_USER}:${TRAEFIK_AUTH_PASS}"
+    TRAEFIK_DASHBOARD=0
+    log "Dashboard Traefika wyłączony."
   fi
 
   log "Traefik skonfigurowany."
@@ -503,7 +512,7 @@ generate_env() {
       echo "TRAEFIK_IMAGE=traefik:${TRAEFIK_VERSION}"
       echo "TRAEFIK_DOMAIN=${TRAEFIK_DOMAIN}"
       echo "TRAEFIK_ACME_EMAIL=${TRAEFIK_ACME_EMAIL}"
-      echo "TRAEFIK_BASIC_AUTH=${TRAEFIK_BASIC_AUTH}"
+      [ "$TRAEFIK_DASHBOARD" -eq 1 ] && echo "TRAEFIK_BASIC_AUTH=${TRAEFIK_BASIC_AUTH}"
     fi
   } > "$ENV_FILE"
 
@@ -854,18 +863,20 @@ create_compose_traefik() {
   local f="${REPO_DIR}/services/traefik/docker-compose.yml"
   log "  Generuję services/traefik/docker-compose.yml"
 
+  local dashboard_flag="false"
+  [ "$TRAEFIK_DASHBOARD" -eq 1 ] && dashboard_flag="true"
+
   cat > "$f" <<YAML
 networks:
   proxy:
-    name: proxy
-    driver: bridge
+    external: true
 
 services:
   traefik:
     image: traefik:${TRAEFIK_VERSION}
     container_name: traefik
     command:
-      - --api.dashboard=true
+      - --api.dashboard=${dashboard_flag}
       - --api.insecure=false
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
@@ -886,6 +897,14 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${REPO_DIR}/services/traefik/letsencrypt:/letsencrypt
+    restart: unless-stopped
+    networks:
+      - proxy
+YAML
+
+  if [ "$TRAEFIK_DASHBOARD" -eq 1 ]; then
+    local escaped_auth="${TRAEFIK_BASIC_AUTH//\$/\$\$}"
+    cat >> "$f" <<YAML
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.rule=Host(\`${TRAEFIK_DOMAIN}\`)"
@@ -893,11 +912,9 @@ services:
       - "traefik.http.routers.traefik.tls.certresolver=le"
       - "traefik.http.routers.traefik.service=api@internal"
       - "traefik.http.routers.traefik.middlewares=traefik-auth"
-      - "traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_BASIC_AUTH}"
-    restart: unless-stopped
-    networks:
-      - proxy
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=${escaped_auth}"
 YAML
+  fi
 
   CREATED_FILES+=("$f")
 }
@@ -1002,13 +1019,17 @@ print_summary() {
   fi
 
   if [ "$USE_TRAEFIK" -eq 1 ]; then
-    log "  Traefik: https://${TRAEFIK_DOMAIN}"
+    if [ "$TRAEFIK_DASHBOARD" -eq 1 ]; then
+      log "  Traefik dashboard: https://${TRAEFIK_DOMAIN}"
+    fi
     log ""
+
     log "WAŻNE — Skonfiguruj rekordy DNS (A) wskazujące na IP tego serwera:"
-    [ "$INSTALL_N8N" -eq 1 ]    && log "  ${N8N_DOMAIN}     → <IP serwera>"
-    [ "$INSTALL_NOCODB" -eq 1 ] && log "  ${NOCODB_DOMAIN}  → <IP serwera>"
-    [ "$INSTALL_ONYX" -eq 1 ]   && log "  ${ONYX_DOMAIN}    → <IP serwera>"
-    log "  ${TRAEFIK_DOMAIN} → <IP serwera>"
+
+    [ "$INSTALL_N8N" -eq 1 ]    && log "  ${N8N_DOMAIN} → <IP serwera>"
+    [ "$INSTALL_NOCODB" -eq 1 ] && log "  ${NOCODB_DOMAIN} → <IP serwera>"
+    [ "$INSTALL_ONYX" -eq 1 ]   && log "  ${ONYX_DOMAIN} → <IP serwera>"
+    [ "$TRAEFIK_DASHBOARD" -eq 1 ] && log "  ${TRAEFIK_DOMAIN} → <IP serwera>"
   fi
 
   log ""

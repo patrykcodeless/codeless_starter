@@ -1,0 +1,409 @@
+# codeless_starter — instalacja 2026-04-03 11:22:26
+# System: Linux 6.8.0-36-generic x86_64
+
+[2026-04-03 11:22:26] 
+[2026-04-03 11:22:26] ══════════════════════════════════════════════════
+[2026-04-03 11:22:26]   Codeless Starter — Instalator
+[2026-04-03 11:22:26] ══════════════════════════════════════════════════
+[2026-04-03 11:22:26] 
+[2026-04-03 11:22:26] Log zapisywany w: /root/install.log
+[2026-04-03 11:22:26] 
+[2026-04-03 11:22:26] ══════════════════════════════════════════════════
+[2026-04-03 11:22:26]   Krok 1: Instalacja Docker
+[2026-04-03 11:22:26] ══════════════════════════════════════════════════
+[2026-04-03 11:22:26] 
+[2026-04-03 11:22:26] Instaluję Docker na Linux...
+[2026-04-03 11:22:26]   Wykryto apt-get (Debian/Ubuntu)
+Hit:1 http://de.archive.ubuntu.com/ubuntu noble InRelease
+Get:2 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Get:3 http://de.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Get:4 http://de.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:5 http://de.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1,875 kB]
+Get:6 http://de.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [342 kB]
+Get:7 http://de.archive.ubuntu.com/ubuntu noble-updates/main amd64 Components [177 kB]
+Get:8 http://de.archive.ubuntu.com/ubuntu noble-updates/main amd64 c-n-f Metadata [16.9 kB]
+Get:9 http://de.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [2,894 kB]
+Get:10 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1,576 kB]
+Get:11 http://de.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [671 kB]
+Get:12 http://de.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Components [212 B]
+Get:13 http://de.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 c-n-f Metadata [556 B]
+Get:14 http://de.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1,663 kB]
+Get:15 http://security.ubuntu.com/ubuntu noble-security/main Translation-en [252 kB]
+Get:16 http://security.ubuntu.com/ubuntu noble-security/main amd64 Components [21.5 kB]
+Get:17 http://security.ubuntu.com/ubuntu noble-security/main amd64 c-n-f Metadata [10.7 kB]
+Get:18 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [2,757 kB]
+Get:19 http://de.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [322 kB]
+Get:20 http://de.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Components [387 kB]
+Get:21 http://security.ubuntu.com/ubuntu noble-security/restricted Translation-en [642 kB]
+Get:22 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Components [212 B]
+Get:23 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 c-n-f Metadata [544 B]
+Get:24 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1,167 kB]
+Get:25 http://security.ubuntu.com/ubuntu noble-security/universe Translation-en [225 kB]
+Get:26 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Components [74.2 kB]
+Get:27 http://security.ubuntu.com/ubuntu noble-security/universe amd64 c-n-f Metadata [22.8 kB]
+Get:28 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [28.8 kB]
+Get:29 http://security.ubuntu.com/ubuntu noble-security/multiverse Translation-en [6,980 B]
+Get:30 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Components [212 B]
+Get:31 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 c-n-f Metadata [396 B]
+Get:32 http://de.archive.ubuntu.com/ubuntu noble-updates/universe amd64 c-n-f Metadata [34.2 kB]
+Get:33 http://de.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [32.1 kB]
+Get:34 http://de.archive.ubuntu.com/ubuntu noble-updates/multiverse Translation-en [7,520 B]
+Get:35 http://de.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Components [940 B]
+Get:36 http://de.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 c-n-f Metadata [500 B]
+Get:37 http://de.archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [40.4 kB]
+Get:38 http://de.archive.ubuntu.com/ubuntu noble-backports/main Translation-en [9,208 B]
+Get:39 http://de.archive.ubuntu.com/ubuntu noble-backports/main amd64 Components [7,380 B]
+Get:40 http://de.archive.ubuntu.com/ubuntu noble-backports/main amd64 c-n-f Metadata [368 B]
+Get:41 http://de.archive.ubuntu.com/ubuntu noble-backports/restricted amd64 Components [216 B]
+Get:42 http://de.archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [30.7 kB]
+Get:43 http://de.archive.ubuntu.com/ubuntu noble-backports/universe Translation-en [18.2 kB]
+Get:44 http://de.archive.ubuntu.com/ubuntu noble-backports/universe amd64 Components [13.1 kB]
+Get:45 http://de.archive.ubuntu.com/ubuntu noble-backports/universe amd64 c-n-f Metadata [1,480 B]
+Get:46 http://de.archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [780 B]
+Get:47 http://de.archive.ubuntu.com/ubuntu noble-backports/multiverse Translation-en [372 B]
+Get:48 http://de.archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Components [212 B]
+Fetched 15.7 MB in 3s (5,640 kB/s)
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+ca-certificates is already the newest version (20240203).
+ca-certificates set to manually installed.
+lsb-release is already the newest version (12.0-2).
+The following additional packages will be installed:
+  dirmngr gnupg-l10n gnupg-utils gpg gpg-agent gpg-wks-client gpgconf gpgsm
+  gpgv keyboxd libcurl3t64-gnutls libcurl4t64
+Suggested packages:
+  pinentry-gnome3 tor parcimonie xloadimage gpg-wks-server scdaemon
+The following packages will be upgraded:
+  curl dirmngr gnupg gnupg-l10n gnupg-utils gpg gpg-agent gpg-wks-client
+  gpgconf gpgsm gpgv keyboxd libcurl3t64-gnutls libcurl4t64
+14 upgraded, 0 newly installed, 0 to remove and 322 not upgraded.
+Need to get 3,195 kB of archives.
+After this operation, 3,072 B of additional disk space will be used.
+Get:1 http://de.archive.ubuntu.com/ubuntu noble-updates/main amd64 gpg-wks-client amd64 2.4.4-2ubuntu17.4 [70.8 kB]
+Get:2 http://de.archive.ubuntu.com/ubuntu noble-updates/main amd64 dirmngr amd64 2.4.4-2ubuntu17.4 [323 kB]
+Get:3 http://de.archive.ubuntu.com/ubuntu noble-updates/main amd64 gnupg-utils amd64 2.4.4-2ubuntu17.4 [109 kB]
+Get:4 http://de.archive.ubuntu.com/ubuntu noble-updates/main amd64 gpgsm amd64 2.4.4-2ubuntu17.4 [232 kB]
+Get:5 http://de.archive.ubuntu.com/ubuntu noble-updates/main amd64 gpg-agent amd64 2.4.4-2ubuntu17.4 [227 kB]
+Get:6 http://de.archive.ubuntu.com/ubuntu noble-updates/main amd64 gpg amd64 2.4.4-2ubuntu17.4 [565 kB]
+Get:7 http://de.archive.ubuntu.com/ubuntu noble-updates/main amd64 gpgconf amd64 2.4.4-2ubuntu17.4 [104 kB]
+Get:8 http://de.archive.ubuntu.com/ubuntu noble-updates/main amd64 gnupg all 2.4.4-2ubuntu17.4 [359 kB]
+Get:9 http://de.archive.ubuntu.com/ubuntu noble-updates/main amd64 keyboxd amd64 2.4.4-2ubuntu17.4 [78.3 kB]
+Get:10 http://de.archive.ubuntu.com/ubuntu noble-updates/main amd64 gpgv amd64 2.4.4-2ubuntu17.4 [158 kB]
+Get:11 http://de.archive.ubuntu.com/ubuntu noble-updates/main amd64 curl amd64 8.5.0-2ubuntu10.8 [227 kB]
+Get:12 http://de.archive.ubuntu.com/ubuntu noble-updates/main amd64 libcurl4t64 amd64 8.5.0-2ubuntu10.8 [342 kB]
+Get:13 http://de.archive.ubuntu.com/ubuntu noble-updates/main amd64 gnupg-l10n all 2.4.4-2ubuntu17.4 [66.4 kB]
+Get:14 http://de.archive.ubuntu.com/ubuntu noble-updates/main amd64 libcurl3t64-gnutls amd64 8.5.0-2ubuntu10.8 [334 kB]
+Fetched 3,195 kB in 0s (8,148 kB/s)
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 84058 files and directories currently installed.)
+Preparing to unpack .../0-gpg-wks-client_2.4.4-2ubuntu17.4_amd64.deb ...
+Unpacking gpg-wks-client (2.4.4-2ubuntu17.4) over (2.4.4-2ubuntu17) ...
+Preparing to unpack .../1-dirmngr_2.4.4-2ubuntu17.4_amd64.deb ...
+Unpacking dirmngr (2.4.4-2ubuntu17.4) over (2.4.4-2ubuntu17) ...
+Preparing to unpack .../2-gnupg-utils_2.4.4-2ubuntu17.4_amd64.deb ...
+Unpacking gnupg-utils (2.4.4-2ubuntu17.4) over (2.4.4-2ubuntu17) ...
+Preparing to unpack .../3-gpgsm_2.4.4-2ubuntu17.4_amd64.deb ...
+Unpacking gpgsm (2.4.4-2ubuntu17.4) over (2.4.4-2ubuntu17) ...
+Preparing to unpack .../4-gpg-agent_2.4.4-2ubuntu17.4_amd64.deb ...
+Unpacking gpg-agent (2.4.4-2ubuntu17.4) over (2.4.4-2ubuntu17) ...
+Preparing to unpack .../5-gpg_2.4.4-2ubuntu17.4_amd64.deb ...
+Unpacking gpg (2.4.4-2ubuntu17.4) over (2.4.4-2ubuntu17) ...
+Preparing to unpack .../6-gpgconf_2.4.4-2ubuntu17.4_amd64.deb ...
+Unpacking gpgconf (2.4.4-2ubuntu17.4) over (2.4.4-2ubuntu17) ...
+Preparing to unpack .../7-gnupg_2.4.4-2ubuntu17.4_all.deb ...
+Unpacking gnupg (2.4.4-2ubuntu17.4) over (2.4.4-2ubuntu17) ...
+Preparing to unpack .../8-keyboxd_2.4.4-2ubuntu17.4_amd64.deb ...
+Unpacking keyboxd (2.4.4-2ubuntu17.4) over (2.4.4-2ubuntu17) ...
+Preparing to unpack .../9-gpgv_2.4.4-2ubuntu17.4_amd64.deb ...
+Unpacking gpgv (2.4.4-2ubuntu17.4) over (2.4.4-2ubuntu17) ...
+Setting up gpgv (2.4.4-2ubuntu17.4) ...
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 84058 files and directories currently installed.)
+Preparing to unpack .../curl_8.5.0-2ubuntu10.8_amd64.deb ...
+Unpacking curl (8.5.0-2ubuntu10.8) over (8.5.0-2ubuntu10.1) ...
+Preparing to unpack .../libcurl4t64_8.5.0-2ubuntu10.8_amd64.deb ...
+Unpacking libcurl4t64:amd64 (8.5.0-2ubuntu10.8) over (8.5.0-2ubuntu10.1) ...
+Preparing to unpack .../gnupg-l10n_2.4.4-2ubuntu17.4_all.deb ...
+Unpacking gnupg-l10n (2.4.4-2ubuntu17.4) over (2.4.4-2ubuntu17) ...
+Preparing to unpack .../libcurl3t64-gnutls_8.5.0-2ubuntu10.8_amd64.deb ...
+Unpacking libcurl3t64-gnutls:amd64 (8.5.0-2ubuntu10.8) over (8.5.0-2ubuntu10.1) ...
+Setting up libcurl4t64:amd64 (8.5.0-2ubuntu10.8) ...
+Setting up libcurl3t64-gnutls:amd64 (8.5.0-2ubuntu10.8) ...
+Setting up gnupg-l10n (2.4.4-2ubuntu17.4) ...
+Setting up gpgconf (2.4.4-2ubuntu17.4) ...
+Setting up curl (8.5.0-2ubuntu10.8) ...
+Setting up gpg (2.4.4-2ubuntu17.4) ...
+Setting up gnupg-utils (2.4.4-2ubuntu17.4) ...
+Setting up gpg-agent (2.4.4-2ubuntu17.4) ...
+Setting up gpgsm (2.4.4-2ubuntu17.4) ...
+Setting up dirmngr (2.4.4-2ubuntu17.4) ...
+Setting up keyboxd (2.4.4-2ubuntu17.4) ...
+Setting up gnupg (2.4.4-2ubuntu17.4) ...
+Setting up gpg-wks-client (2.4.4-2ubuntu17.4) ...
+Processing triggers for man-db (2.12.0-4build2) ...
+Processing triggers for install-info (7.1-3build2) ...
+Processing triggers for libc-bin (2.39-0ubuntu8.2) ...
+
+Running kernel seems to be up-to-date.
+
+Restarting services...
+ systemctl restart packagekit.service
+
+No containers need to be restarted.
+
+No user sessions are running outdated binaries.
+
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
+Get:1 https://download.docker.com/linux/ubuntu noble InRelease [48.5 kB]
+Hit:2 http://de.archive.ubuntu.com/ubuntu noble InRelease
+Hit:3 http://security.ubuntu.com/ubuntu noble-security InRelease
+Hit:4 http://de.archive.ubuntu.com/ubuntu noble-updates InRelease
+Hit:5 http://de.archive.ubuntu.com/ubuntu noble-backports InRelease
+Get:6 https://download.docker.com/linux/ubuntu noble/stable amd64 Packages [48.9 kB]
+Fetched 97.4 kB in 1s (143 kB/s)
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  docker-ce-rootless-extras libslirp0 pigz slirp4netns
+Suggested packages:
+  cgroupfs-mount | cgroup-lite docker-model-plugin
+The following NEW packages will be installed:
+  containerd.io docker-buildx-plugin docker-ce docker-ce-cli
+  docker-ce-rootless-extras docker-compose-plugin libslirp0 pigz slirp4netns
+0 upgraded, 9 newly installed, 0 to remove and 322 not upgraded.
+Need to get 93.9 MB of archives.
+After this operation, 362 MB of additional disk space will be used.
+Get:1 https://download.docker.com/linux/ubuntu noble/stable amd64 containerd.io amd64 2.2.2-1~ubuntu.24.04~noble [23.6 MB]
+Get:2 http://de.archive.ubuntu.com/ubuntu noble/universe amd64 pigz amd64 2.8-1 [65.6 kB]
+Get:3 http://de.archive.ubuntu.com/ubuntu noble/main amd64 libslirp0 amd64 4.7.0-1ubuntu3 [63.8 kB]
+Get:4 http://de.archive.ubuntu.com/ubuntu noble/universe amd64 slirp4netns amd64 1.2.1-1build2 [34.9 kB]
+Get:5 https://download.docker.com/linux/ubuntu noble/stable amd64 docker-ce-cli amd64 5:29.3.1-1~ubuntu.24.04~noble [16.4 MB]
+Get:6 https://download.docker.com/linux/ubuntu noble/stable amd64 docker-ce amd64 5:29.3.1-1~ubuntu.24.04~noble [22.6 MB]
+Get:7 https://download.docker.com/linux/ubuntu noble/stable amd64 docker-buildx-plugin amd64 0.33.0-1~ubuntu.24.04~noble [16.9 MB]
+Get:8 https://download.docker.com/linux/ubuntu noble/stable amd64 docker-ce-rootless-extras amd64 5:29.3.1-1~ubuntu.24.04~noble [6,390 kB]
+Get:9 https://download.docker.com/linux/ubuntu noble/stable amd64 docker-compose-plugin amd64 5.1.1-1~ubuntu.24.04~noble [7,846 kB]
+Fetched 93.9 MB in 4s (20.9 MB/s)
+Selecting previously unselected package containerd.io.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 84058 files and directories currently installed.)
+Preparing to unpack .../0-containerd.io_2.2.2-1~ubuntu.24.04~noble_amd64.deb ...
+Unpacking containerd.io (2.2.2-1~ubuntu.24.04~noble) ...
+Selecting previously unselected package docker-ce-cli.
+Preparing to unpack .../1-docker-ce-cli_5%3a29.3.1-1~ubuntu.24.04~noble_amd64.deb ...
+Unpacking docker-ce-cli (5:29.3.1-1~ubuntu.24.04~noble) ...
+Selecting previously unselected package docker-ce.
+Preparing to unpack .../2-docker-ce_5%3a29.3.1-1~ubuntu.24.04~noble_amd64.deb ...
+Unpacking docker-ce (5:29.3.1-1~ubuntu.24.04~noble) ...
+Selecting previously unselected package pigz.
+Preparing to unpack .../3-pigz_2.8-1_amd64.deb ...
+Unpacking pigz (2.8-1) ...
+Selecting previously unselected package docker-buildx-plugin.
+Preparing to unpack .../4-docker-buildx-plugin_0.33.0-1~ubuntu.24.04~noble_amd64.deb ...
+Unpacking docker-buildx-plugin (0.33.0-1~ubuntu.24.04~noble) ...
+Selecting previously unselected package docker-ce-rootless-extras.
+Preparing to unpack .../5-docker-ce-rootless-extras_5%3a29.3.1-1~ubuntu.24.04~noble_amd64.deb ...
+Unpacking docker-ce-rootless-extras (5:29.3.1-1~ubuntu.24.04~noble) ...
+Selecting previously unselected package docker-compose-plugin.
+Preparing to unpack .../6-docker-compose-plugin_5.1.1-1~ubuntu.24.04~noble_amd64.deb ...
+Unpacking docker-compose-plugin (5.1.1-1~ubuntu.24.04~noble) ...
+Selecting previously unselected package libslirp0:amd64.
+Preparing to unpack .../7-libslirp0_4.7.0-1ubuntu3_amd64.deb ...
+Unpacking libslirp0:amd64 (4.7.0-1ubuntu3) ...
+Selecting previously unselected package slirp4netns.
+Preparing to unpack .../8-slirp4netns_1.2.1-1build2_amd64.deb ...
+Unpacking slirp4netns (1.2.1-1build2) ...
+Setting up docker-buildx-plugin (0.33.0-1~ubuntu.24.04~noble) ...
+Setting up containerd.io (2.2.2-1~ubuntu.24.04~noble) ...
+Created symlink /etc/systemd/system/multi-user.target.wants/containerd.service → /usr/lib/systemd/system/containerd.service.
+Setting up docker-compose-plugin (5.1.1-1~ubuntu.24.04~noble) ...
+Setting up docker-ce-cli (5:29.3.1-1~ubuntu.24.04~noble) ...
+Setting up libslirp0:amd64 (4.7.0-1ubuntu3) ...
+Setting up pigz (2.8-1) ...
+Setting up docker-ce-rootless-extras (5:29.3.1-1~ubuntu.24.04~noble) ...
+Setting up slirp4netns (1.2.1-1build2) ...
+Setting up docker-ce (5:29.3.1-1~ubuntu.24.04~noble) ...
+Created symlink /etc/systemd/system/multi-user.target.wants/docker.service → /usr/lib/systemd/system/docker.service.
+Created symlink /etc/systemd/system/sockets.target.wants/docker.socket → /usr/lib/systemd/system/docker.socket.
+Processing triggers for man-db (2.12.0-4build2) ...
+Processing triggers for libc-bin (2.39-0ubuntu8.2) ...
+
+Running kernel seems to be up-to-date.
+
+No services need to be restarted.
+
+No containers need to be restarted.
+
+No user sessions are running outdated binaries.
+
+No VM guests are running outdated hypervisor (qemu) binaries on this host.
+Synchronizing state of docker.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable docker
+[2026-04-03 11:23:14] Docker zainstalowany pomyślnie.
+[2026-04-03 11:23:14] Weryfikacja: Docker version 29.3.1, build c2be9cc
+[2026-04-03 11:23:14] Weryfikacja: Docker Compose version v5.1.1
+[2026-04-03 11:23:14] 
+[2026-04-03 11:23:14] ══════════════════════════════════════════════════
+[2026-04-03 11:23:14]   Krok 2a: Konfiguracja domeny
+[2026-04-03 11:23:14] ══════════════════════════════════════════════════
+[2026-04-03 11:23:14] 
+[2026-04-03 11:24:10] Domena: automation.code-less.eu
+[2026-04-03 11:24:10] Traefik zostanie automatycznie skonfigurowany jako reverse proxy z SSL.
+[2026-04-03 11:24:10] 
+[2026-04-03 11:24:10] ══════════════════════════════════════════════════
+[2026-04-03 11:24:10]   Krok 2b: Wybór usług
+[2026-04-03 11:24:10] ══════════════════════════════════════════════════
+[2026-04-03 11:24:10] 
+[2026-04-03 11:24:15] Wybrane usługi:
+[2026-04-03 11:24:15]   ✓ n8n
+[2026-04-03 11:24:15]   ✓ NocoDB
+[2026-04-03 11:24:15]   ✓ Traefik (automatyczny — domena wykryta)
+[2026-04-03 11:24:15] 
+[2026-04-03 11:24:15] ══════════════════════════════════════════════════
+[2026-04-03 11:24:15]   Krok 3: Wersje usług
+[2026-04-03 11:24:15] ══════════════════════════════════════════════════
+[2026-04-03 11:24:15] 
+[2026-04-03 11:24:17] n8n: latest
+[2026-04-03 11:24:18] NocoDB: latest
+[2026-04-03 11:24:18] Wygenerowane subdomeny:
+[2026-04-03 11:24:18]   n8n:    https://n8n.automation.code-less.eu
+[2026-04-03 11:24:18]   NocoDB: https://nocodb.automation.code-less.eu
+[2026-04-03 11:24:18]   Traefik: https://traefik.automation.code-less.eu
+[2026-04-03 11:24:18] 
+[2026-04-03 11:24:18] === Konfiguracja n8n ===
+[2026-04-03 11:24:20] 
+[2026-04-03 11:24:20] === Konfiguracja Traefik ===
+[2026-04-03 11:24:38] Traefik skonfigurowany.
+[2026-04-03 11:24:38] 
+[2026-04-03 11:24:38] ══════════════════════════════════════════════════
+[2026-04-03 11:24:38]   Krok 4a: Tworzenie struktury katalogów
+[2026-04-03 11:24:38] ══════════════════════════════════════════════════
+[2026-04-03 11:24:38] 
+[2026-04-03 11:24:38]   Utworzono: /root/services/n8n/data
+[2026-04-03 11:24:38]   Utworzono: /root/services/nocodb/data
+[2026-04-03 11:24:38]   Utworzono: /root/services/traefik/data
+[2026-04-03 11:24:38]   Utworzono: /root/services/traefik/letsencrypt
+[2026-04-03 11:24:39]   Utworzono: /root/services/traefik/letsencrypt/acme.json (chmod 600)
+[2026-04-03 11:24:39] Generuję plik .env...
+[2026-04-03 11:24:39]   .env zapisany w: /root/.env
+[2026-04-03 11:24:39] 
+[2026-04-03 11:24:39] ══════════════════════════════════════════════════
+[2026-04-03 11:24:39]   Krok 4b: Generowanie docker-compose.yml
+[2026-04-03 11:24:39] ══════════════════════════════════════════════════
+[2026-04-03 11:24:39] 
+[2026-04-03 11:24:39]   Generuję services/n8n/docker-compose.yml
+[2026-04-03 11:24:39]   Generuję services/nocodb/docker-compose.yml
+[2026-04-03 11:24:39]   Generuję services/traefik/docker-compose.yml
+[2026-04-03 11:24:39] Pliki konfiguracyjne wygenerowane.
+[2026-04-03 11:24:39] Tworzę sieć Docker 'proxy'...
+e439af0720d79bb51c3d4390ddfdfb57765246da87163047c54a99df8923b7a7
+[2026-04-03 11:24:39]   Sieć 'proxy' utworzona.
+[2026-04-03 11:24:39] 
+[2026-04-03 11:24:39] ══════════════════════════════════════════════════
+[2026-04-03 11:24:39]   Krok 6: Uruchamianie usług
+[2026-04-03 11:24:39] ══════════════════════════════════════════════════
+[2026-04-03 11:24:39] 
+[2026-04-03 11:24:39] Uruchamiam Traefik...
+time="2026-04-03T11:24:39+02:00" level=warning msg="The \"apr1\" variable is not set. Defaulting to a blank string."
+time="2026-04-03T11:24:39+02:00" level=warning msg="The \"eHN2Cu6g\" variable is not set. Defaulting to a blank string."
+time="2026-04-03T11:24:39+02:00" level=warning msg="The \"AF\" variable is not set. Defaulting to a blank string."
+ Image traefik:v3.3 Pulling 
+ 52540cfbfa08 Pulling fs layer 0B
+ f18232174bc9 Pulling fs layer 0B
+ 53e4add0faa4 Pulling fs layer 0B
+ 38517210487f Pulling fs layer 0B
+ d2e0fa5ce969 Downloading 824.8kB
+ 2e0d0635e6b5 Download complete 0B
+ d2e0fa5ce969 Download complete 0B
+ 52540cfbfa08 Download complete 0B
+ 38517210487f Downloading 2.097MB
+ f18232174bc9 Downloading 1.049MB
+ 53e4add0faa4 Download complete 0B
+ 38517210487f Downloading 3.146MB
+ f18232174bc9 Downloading 2.097MB
+ 38517210487f Downloading 4.194MB
+ 38517210487f Downloading 5.243MB
+ f18232174bc9 Downloading 3.146MB
+ f18232174bc9 Downloading 3.642MB
+ 38517210487f Downloading 6.291MB
+ f18232174bc9 Download complete 0B
+ 38517210487f Downloading 7.528MB
+ f18232174bc9 Extracting 1B
+ 38517210487f Downloading 10.49MB
+ f18232174bc9 Extracting 1B
+ 38517210487f Downloading 12.58MB
+ f18232174bc9 Extracting 1B
+ 38517210487f Downloading 14.68MB
+ f18232174bc9 Extracting 1B
+ 38517210487f Downloading 16.37MB
+ 53e4add0faa4 Extracting 1B
+ f18232174bc9 Pull complete 0B
+ 38517210487f Downloading 17.83MB
+ 53e4add0faa4 Extracting 1B
+ 38517210487f Downloading 19.92MB
+ 53e4add0faa4 Extracting 1B
+ 38517210487f Downloading 22.02MB
+ 53e4add0faa4 Extracting 1B
+ 38517210487f Downloading 24.12MB
+ 53e4add0faa4 Extracting 1B
+ 38517210487f Downloading 26.21MB
+ 53e4add0faa4 Extracting 1B
+ 38517210487f Downloading 28.49MB
+ 53e4add0faa4 Extracting 1B
+ 38517210487f Downloading 31.46MB
+ 53e4add0faa4 Pull complete 0B
+ 38517210487f Downloading 33.55MB
+ 38517210487f Downloading 35.65MB
+ 38517210487f Downloading 37.75MB
+ 38517210487f Downloading 39.85MB
+ 38517210487f Downloading 41.94MB
+ 38517210487f Downloading 44.04MB
+ 38517210487f Downloading 46.14MB
+ 38517210487f Downloading 48.23MB
+ 38517210487f Downloading 50.33MB
+ 38517210487f Downloading 52.43MB
+ 38517210487f Downloading 54.16MB
+ 38517210487f Download complete 0B
+ 38517210487f Extracting 1B
+ 38517210487f Extracting 1B
+ 38517210487f Extracting 1B
+ 38517210487f Extracting 1B
+ 38517210487f Extracting 1B
+ 38517210487f Extracting 1B
+ 38517210487f Extracting 1B
+ 38517210487f Extracting 1B
+ 38517210487f Extracting 1B
+ 38517210487f Extracting 1B
+ 38517210487f Extracting 1B
+ 38517210487f Extracting 2B
+ 38517210487f Extracting 2B
+ 38517210487f Extracting 2B
+ 38517210487f Extracting 2B
+ 38517210487f Extracting 2B
+ 38517210487f Extracting 2B
+ 38517210487f Extracting 2B
+ 38517210487f Extracting 2B
+ 38517210487f Extracting 2B
+ 38517210487f Extracting 2B
+ 38517210487f Extracting 3B
+ 38517210487f Extracting 3B
+ 38517210487f Extracting 3B
+ 38517210487f Extracting 3B
+ 38517210487f Extracting 3B
+ 38517210487f Extracting 3B
+ 38517210487f Extracting 3B
+ 38517210487f Extracting 3B
+ 38517210487f Extracting 3B
+ 38517210487f Extracting 3B
+ 38517210487f Extracting 4B
+ 38517210487f Extracting 4B
+ 38517210487f Extracting 4B
+ 38517210487f Extracting 4B
+ 38517210487f Pull complete 0B
+ 52540cfbfa08 Pull complete 0B
+ Image traefik:v3.3 Pulled 
+time="2026-04-03T11:24:48+02:00" level=warning msg="The \"apr1\" variable is not set. Defaulting to a blank string."
+time="2026-04-03T11:24:48+02:00" level=warning msg="The \"eHN2Cu6g\" variable is not set. Defaulting to a blank string."
+time="2026-04-03T11:24:48+02:00" level=warning msg="The \"AF\" variable is not set. Defaulting to a blank string."
+time="2026-04-03T11:24:48+02:00" level=warning msg="a network with name proxy exists but was not created by compose.\nSet `external: true` to use an existing network"
+network proxy was found but has incorrect label com.docker.compose.network set to "" (expected: "proxy")
