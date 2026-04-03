@@ -298,10 +298,10 @@ select_services() {
   fi
 
   log "Wybrane usługi:"
-  [ "$INSTALL_N8N" -eq 1 ]    && log "  ✓ n8n"
-  [ "$INSTALL_NOCODB" -eq 1 ] && log "  ✓ NocoDB"
-  [ "$INSTALL_ONYX" -eq 1 ]   && log "  ✓ Onyx.app"
-  [ "$USE_TRAEFIK" -eq 1 ]    && log "  ✓ Traefik (automatyczny — domena wykryta)"
+  [ "$INSTALL_N8N" -eq 1 ]    && log "  ✓ n8n"          || true
+  [ "$INSTALL_NOCODB" -eq 1 ] && log "  ✓ NocoDB"       || true
+  [ "$INSTALL_ONYX" -eq 1 ]   && log "  ✓ Onyx.app"     || true
+  [ "$USE_TRAEFIK" -eq 1 ]    && log "  ✓ Traefik (automatyczny — domena wykryta)" || true
 }
 
 configure_versions() {
@@ -343,10 +343,10 @@ configure_subdomains() {
     TRAEFIK_DOMAIN="traefik.${BASE_DOMAIN}"
 
     log "Wygenerowane subdomeny:"
-    [ "$INSTALL_N8N" -eq 1 ]    && log "  n8n:    https://${N8N_DOMAIN}"
-    [ "$INSTALL_NOCODB" -eq 1 ] && log "  NocoDB: https://${NOCODB_DOMAIN}"
-    [ "$INSTALL_ONYX" -eq 1 ]   && log "  Onyx:   https://${ONYX_DOMAIN}"
-    [ "$TRAEFIK_DASHBOARD" -eq 1 ] && log "  Traefik: https://${TRAEFIK_DOMAIN}"
+    [ "$INSTALL_N8N" -eq 1 ]       && log "  n8n:    https://${N8N_DOMAIN}"    || true
+    [ "$INSTALL_NOCODB" -eq 1 ]    && log "  NocoDB: https://${NOCODB_DOMAIN}" || true
+    [ "$INSTALL_ONYX" -eq 1 ]      && log "  Onyx:   https://${ONYX_DOMAIN}"   || true
+    [ "$TRAEFIK_DASHBOARD" -eq 1 ] && log "  Traefik: https://${TRAEFIK_DOMAIN}" || true
   else
     N8N_DOMAIN="localhost"
     NOCODB_DOMAIN="localhost"
@@ -864,7 +864,7 @@ create_compose_traefik() {
   log "  Generuję services/traefik/docker-compose.yml"
 
   local dashboard_flag="false"
-  [ "$TRAEFIK_DASHBOARD" -eq 1 ] && dashboard_flag="true"
+  [ "$TRAEFIK_DASHBOARD" -eq 1 ] && dashboard_flag="true" || true
 
   cat > "$f" <<YAML
 networks:
@@ -1026,10 +1026,10 @@ print_summary() {
 
     log "WAŻNE — Skonfiguruj rekordy DNS (A) wskazujące na IP tego serwera:"
 
-    [ "$INSTALL_N8N" -eq 1 ]    && log "  ${N8N_DOMAIN} → <IP serwera>"
-    [ "$INSTALL_NOCODB" -eq 1 ] && log "  ${NOCODB_DOMAIN} → <IP serwera>"
-    [ "$INSTALL_ONYX" -eq 1 ]   && log "  ${ONYX_DOMAIN} → <IP serwera>"
-    [ "$TRAEFIK_DASHBOARD" -eq 1 ] && log "  ${TRAEFIK_DOMAIN} → <IP serwera>"
+    [ "$INSTALL_N8N" -eq 1 ]       && log "  ${N8N_DOMAIN} → <IP serwera>"    || true
+    [ "$INSTALL_NOCODB" -eq 1 ]    && log "  ${NOCODB_DOMAIN} → <IP serwera>" || true
+    [ "$INSTALL_ONYX" -eq 1 ]      && log "  ${ONYX_DOMAIN} → <IP serwera>"   || true
+    [ "$TRAEFIK_DASHBOARD" -eq 1 ] && log "  ${TRAEFIK_DOMAIN} → <IP serwera>" || true
   fi
 
   log ""
